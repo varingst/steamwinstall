@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+
+print_help() { cat <<EOS
+${0##*/}: Download Windows steam games while on Linux
+A convencience wrapper around steamcmd.sh
+
+Usage: ${0##*/} -u STEAMUSR -d STEAMDIR [-c STEAMCMD] APPID|GAME
+
+APPID is the Steam app id
+GAME is a search string to find the appid using steamdb.info
+
+Options:
+  -u, --user STEAMUSR           Steam username to log in as
+  -d, --dir STEAMDIR            Windows steam library directory,
+                                usually the Steam installation directory
+  -c, --cmd STEAMCMD            Path of steamcmd.sh
+  -h, --help                    Print this help text and exit
+
+If not provided, STEAMCMD is assumed to be ~/.steam/steam/steamcmd.sh
+EOS
+}
+
+main() { # {{{1
+  while (( $# )); do
+    case "$1" in
+      -c|--cmd)    STEAMCMD="$2"; shift;;
+      -u|--user)   steamusr="$2"; shift;;
+      -d|--dir)    steamdir="$2"; shift;;
+      -h|--help)   print_help; exit;;
+      --)          shift; break;;
+      --*)         bail "unrecognized option: '$1'";;
+      *)           break;;
+    esac
+    shift
+  done
+
+  if [[ "$1" =~ ^[[:digit:]]+$ ]]; then
+    appid="$1"
+  elif [[ -z "$1" ]]; then
+    bail "No AppId or Game name provided"
+  else
+    appid=$(find_id "$@")
+  fi
+
+  [[ -z "$STEAMCMD" && -x "$HOME/.steam/steam/steamcmd.sh" ]] && \
+    STEAMCMD="$HOME/.steam/steam/steamcmd.sh"
+
+  expect steamusr STEAMCMD steamdir
+
+  # $steamdir is expected to be a steam library directory.
+  # The default is the steam installation dir.
+  #
+  # A steam library directory contains one directory 'steamapps',
+  # which contains appmanifest_appid.acf files, containing json
+  # formatted metainfo.
+  #
+  # The actual game is put in steamapps/common/$install_dir
+  #
+  # When using +force_install_dir, the game is put in the
+  # provided directory. A 'steamapps' directory is created within
+  # the game dir, and it contains the game's manifest file.
+  # So +force_install_dir creates a self-contained library
+  # directory within the game directory.
+  #
+  # To properly install the game in the steam windows library dir:
+  # 1. Get the install dir from steamcmd
+  # 2. Run +force_install_dir $steamdir/steamapps/common/<install dir>
+  # 3. Move the manifest from <install dir>/steamapps/ to $steamdir/steamapps
+  # 4. Delete <install dir>/steamapps
+
+
+  verify_lib_dir "$steamdir" --confirm
+
+  install_dir="$(get_install_dir "$appid")" || \
+    bail "could not determine install dir"
+  gamedir="$steamdir/steamapps/common/$install_dir"
+
+  "$STEAMCMD" +@ShutdownOnFailedCommand 1 \
+              +@sSteamCmdForcePlatformType windows \
+              +login "$steamusr" \
+              +force_install_dir "$gamedir" \
+              "+app_update $appid validate" \
+              +quit || bail "error running $STEAMCMD"
+
+  # don't modify anything unless it's a proper steam library dir
+  if verify_lib_dir "$steamdir"; then
+    cp "$gamedir/steamapps/appmanifest_$appid.acf" "$steamdir/steamapps" || \
+      bail "failed copying manifest to steam library directory"
+    rm -rf "${gamedir?Caution}/steamapps"
+  fi
+}
+
+find_id() { # {{{1
+  mapfile -t games < <(query "$@" | parse_apps)
+  case "${#games[@]}" in
+    0) bail "No games matching '$*' found";;
+    1) read -r appid _ <<< "${games[0]}";;
+    *)
+      select game in "${games[@]}"; do
+        read -r appid _ <<< "${game}"
+        break
+      done
+    ;;
+  esac
+  echo "$appid"
+}
+
+parse_apps() { # {{{1
+  awk -F\" '
+    /<tr class=\"app\"/ { id=$4; read=1 }
+    read && /<td>/ {
+      if (read++ == 3) {
+        gsub(/<[^>]*>/, "")
+        printf "%8d %s\n", id, $0
+      }
+    }
+    /<\/table>/ { read=0 }
+  ' /dev/stdin
+}
+
+verify_lib_dir() { # {{{1
+  [[ -d "$1/steamapps/common" ]] && return
+  [[ "$2" == --confirm ]] || return
+
+  echo "'$1' does not appear to be an existing steam library directory"
+  read -n 1 -rp "continue anyway? [y/N]: " yn
+  echo
+  [[ "${yn,}" == y ]] || bail "bailing .."
+}
+
+# TODO: This only works if it has local information
+
+get_install_dir() { # {{{1
+  "$STEAMCMD" +app_info_print "$1" +quit | awk '
+  /^\t"config"/ { read=1 }
+  read && /^\t\t"installdir"/ {
+    gsub(/"/, "", $2)
+    print $2
+    hit=1
+  }
+  read && /^\t}/ { read=0 }
+  END { exit(!hit) }'
+}
+
+expect() { # {{{1
+  for arg; do
+    [[ -v "$arg" ]] || bail "'$arg' not set, cannot proceed"
+  done
+}
+
+query() { # {{{1
+  curl "https://steamdb.info/search/?a=app&q=$(printf "%s+" "$@")" 2>/dev/null || \
+    bail "curl failed while getting info from steamdb.info"
+}
+
+bail() { # {{{1
+  printf '%s\n' "$@" >&2
+  exit 1
+}
+
+err() { # {{{1
+  ecode="$?"
+  cat >&2 <<EOS
+got an unexpected error running:
+$BASH_COMMAND
+on line ${BASH_LINENO[0]}
+exit code: $ecode
+EOS
+  exit "$ecode"
+}
+
+trap err ERR
+main "$@"

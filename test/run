@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+
+readcmd() {
+  declare -Ag OPTS
+  while (( $# )); do
+    [[ "$1" == +* ]] && OPTS["$1"]="$2"
+    shift
+  done
+}
+
+dumpinfo() {
+  cat test/quake.json
+}
+
+setUp() {
+  testdir=$(mktemp -d) || exit 1
+  mkdir -p "$testdir/steamapps/common"
+
+  exe="steamwinstall"
+  id=611500
+  name="Quake Champions"
+  gamedir="$testdir/steamapps/common/quakechampions"
+  manifest="appmanifest_$id.acf"
+  user="testuser"
+  cmd="steamcmd"
+}
+
+tearDown() {
+  rm -rf "$testdir"
+}
+
+# shims {{{1
+
+steamcmd() {
+  if [[ "$1" == +app_info_print ]]; then
+    dumpinfo "$2"
+    # dumpinfo "$2" >&2
+  else
+    readcmd "$@"
+    # since steamcmd's +commands must be 'group-quoted' if they
+    # are given more than one parammeter, we will will have an option
+    # on the form "+app_update $app_id validate", with the value +quit
+
+    for opt in "${!OPTS[@]}"; do
+      if [[ "${OPTS[$opt]}" == +quit ]]; then
+        read -r _ appid _ <<< "$opt"
+      fi
+    done
+
+    [[ -z "${OPTS[+force_install_dir]}" ]] && exit 1
+
+    mkdir -p "${OPTS[+force_install_dir]}/steamapps"
+
+    # this file will be moved to steamdir/steamapps
+    touch "${OPTS[+force_install_dir]}/steamapps/appmanifest_$appid.acf"
+    echo "$@"
+  fi
+}
+
+curl() {
+  cat test/quake.html
+}
+
+
+# tests {{{1
+
+testAppId() {
+  readcmd $("$exe" --user "$user" --dir "$testdir" --cmd "$cmd" "$id")
+  assertEquals "$id" "${OPTS[+app_update]}"
+  assertEquals "$user" "${OPTS[+login]}"
+  assertEquals "$gamedir" "${OPTS[+force_install_dir]}"
+  assertTrue '[[ -f "$testdir/steamapps/$manifest" ]]'
+}
+testQuery() {
+  # select '1' from the 'quake' query listing, which is quake champions
+  readcmd $(echo 1 | "$exe" -u "$user" -d "$testdir" -c "$cmd" quake 2>/dev/null)
+  assertEquals "$id" "${OPTS[+app_update]}"
+  assertEquals "$user" "${OPTS[+login]}"
+  assertEquals "$gamedir" "${OPTS[+force_install_dir]}"
+  assertTrue '[[ -f "$testdir/steamapps/$manifest" ]]'
+}
+
+export -f steamcmd curl dumpinfo readcmd
+
+. shunit2

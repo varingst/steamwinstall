@@ -1,0 +1,174 @@
+Redirecting stderr to '/home/loke/Steam/logs/stderr.txt'
+[  0%] Checking for available updates...
+[----] Verifying installation...
+Steam Console Client (c) Valve Corporation
+-- type 'quit' to exit --
+Loading Steam API...OK.
+AppID : 611500, change number : 4654029/0, last change : Thu Jun 21 15:34:35 2018 
+"611500"
+{
+	"common"
+	{
+		"name"		"Quake Champions"
+		"type"		"Game"
+		"ReleaseState"		"released"
+		"oslist"		"windows"
+		"osarch"		""
+		"clienticon"		"f1d4be57d4628c6d6208fb06d37f4f42c19360b7"
+		"clienttga"		"3a7bb47009d37e3eaad9b44097ff362171e10cb3"
+		"icon"		"539032fb1e8b41d0a48ff11bf63bfe7918ace24c"
+		"languages"
+		{
+			"english"		"1"
+			"german"		"1"
+			"french"		"1"
+			"italian"		"1"
+			"spanish"		"1"
+			"russian"		"1"
+			"polish"		"1"
+			"brazilian"		"1"
+		}
+		"logo"		"f5e57fa0fe261e947ab4935481fc66d4ff8808aa"
+		"logo_small"		"f5e57fa0fe261e947ab4935481fc66d4ff8808aa_thumb"
+		"exfgls"		"1"
+		"metacritic_name"		"Project Lovecraft"
+		"small_capsule"
+		{
+			"english"		"capsule_231x87.jpg"
+		}
+		"header_image"
+		{
+			"english"		"header.jpg"
+		}
+		"community_visible_stats"		"1"
+		"community_hub_visible"		"1"
+		"gameid"		"611500"
+		"store_tags"
+		{
+			"0"		"1663"
+			"1"		"3859"
+			"2"		"5547"
+			"3"		"4345"
+			"4"		"1734"
+			"5"		"4667"
+			"6"		"19"
+			"7"		"3839"
+			"8"		"1774"
+			"9"		"5055"
+			"10"		"3878"
+			"11"		"4026"
+			"12"		"113"
+			"13"		"1693"
+			"14"		"1667"
+			"15"		"3942"
+			"16"		"4182"
+			"17"		"7432"
+			"18"		"6650"
+		}
+	}
+	"extended"
+	{
+		"developer"		"id Software"
+		"publisher"		"Bethesda Softworks"
+		"homepage"		"https://quake.bethesda.net/"
+		"listofdlc"		"679310,682890,719060,750140,753600,757390,758540,771940,855000,855001,855002,855003,855004,855005,855006,855007,855008,855009,874720"
+	}
+	"config"
+	{
+		"installdir"		"quakechampions"
+		"launch"
+		{
+			"0"
+			{
+				"executable"		"client\\bin\\pc\\QuakeChampions.exe"
+				"workingdir"		"client\\bin\\pc"
+				"type"		"none"
+				"config"
+				{
+					"oslist"		"windows"
+				}
+			}
+		}
+	}
+	"depots"
+	{
+		"228986"
+		{
+			"name"		"VC 2015 Redist"
+			"config"
+			{
+				"oslist"		"windows"
+			}
+			"manifests"
+			{
+				"public"		"1003373983685403880"
+			}
+			"maxsize"		"29759895"
+			"depotfromapp"		"228980"
+		}
+		"611501"
+		{
+			"name"		"Project Lovecraft Content"
+			"manifests"
+			{
+				"public"		"367078051578189184"
+			}
+			"maxsize"		"16953138565"
+			"encryptedmanifests"
+			{
+				"bitest"
+				{
+					"encrypted_gid_2"		"CA44177B657C33F0501D83619B4DB9E6"
+					"encrypted_size_2"		"84010F53B07480D461A6FBFD6345B0B4"
+				}
+				"int_beta"
+				{
+					"encrypted_gid_2"		"0B23816911247571A4CB011D60BEB1E9"
+					"encrypted_size_2"		"BB8C78DD14CDCF9FDC422FF788ED2EF3"
+				}
+				"prod_beta"
+				{
+					"encrypted_gid_2"		"73D90F2F7D6F1860331068E6EA8265D2"
+					"encrypted_size_2"		"CB2BBDAA4B79BEB830D6620C241EE906"
+				}
+			}
+		}
+		"baselanguages"		"english,german,french,italian,spanish,russian,polish,brazilian"
+		"branches"
+		{
+			"public"
+			{
+				"buildid"		"2832432"
+				"timeupdated"		"1528371429"
+			}
+			"beta"
+			{
+				"buildid"		"2832432"
+				"description"		""
+				"pwdrequired"		"1"
+				"timeupdated"		"1528132921"
+			}
+			"bitest"
+			{
+				"buildid"		"2002919"
+				"description"		""
+				"pwdrequired"		"1"
+				"timeupdated"		"1513355068"
+			}
+			"int_beta"
+			{
+				"buildid"		"2835628"
+				"description"		""
+				"pwdrequired"		"1"
+				"timeupdated"		"1528214178"
+			}
+			"prod_beta"
+			{
+				"buildid"		"2829313"
+				"description"		""
+				"pwdrequired"		"1"
+				"timeupdated"		"1528033043"
+			}
+		}
+	}
+}
